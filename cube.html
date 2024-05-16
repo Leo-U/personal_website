@@ -127,16 +127,16 @@
         // Function to trigger a wave effect with continuous motion in random directions
         function triggerWave() {
             console.log('Wave triggered');
-            const delay = 100 / forceMultiplier; // Decrease delay by force multiplier to speed up the ripple
+            const delay = 100 / (forceMultiplier * 2); // Decrease delay by force multiplier to speed up the ripple
             cubes.forEach((cube, index) => {
                 if (!cube.moved) { // Only move cubes that haven't been moved yet
                     const randomDirection = getRandomDirection();
-                    const cubeForceMultiplier = forceMultiplier; // Capture the force multiplier at the time of movement
+                    const cubeForceMultiplier = forceMultiplier * 2; // Capture the force multiplier at the time of movement
                     const animateCube = () => {
                         const newPos = {
-                            x: cube.position.x + randomDirection.x * 0.1 * (cubeForceMultiplier / 20 * 10),
-                            y: cube.position.y + randomDirection.y * 0.1 * (cubeForceMultiplier / 20 * 10),
-                            z: cube.position.z + randomDirection.z * 0.1 * (cubeForceMultiplier / 20 * 10)
+                            x: cube.position.x + randomDirection.x * 0.1 * cubeForceMultiplier,
+                            y: cube.position.y + randomDirection.y * 0.1 * cubeForceMultiplier,
+                            z: cube.position.z + randomDirection.z * 0.1 * cubeForceMultiplier
                         };
                         new TWEEN.Tween(cube.position)
                             .to(newPos, 100)
