@@ -7,9 +7,15 @@
     <style>
         body { margin: 0; }
         canvas { display: block; }
+        #controls { position: absolute; top: 10px; left: 10px; z-index: 100; background: rgba(255, 255, 255, 0.8); padding: 10px; border-radius: 5px; }
     </style>
 </head>
 <body>
+    <div id="controls">
+        <label for="forceRange">Force:</label>
+        <input type="range" id="forceRange" name="forceRange" min="1" max="20" value="5">
+        <span id="forceValue">5x</span>
+    </div>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tween.js/18.6.4/tween.umd.js"></script>
@@ -25,6 +31,20 @@
         const renderer = new THREE.WebGLRenderer();
         renderer.setSize(window.innerWidth, window.innerHeight);
         document.body.appendChild(renderer.domElement);
+
+        // Get the force range input and display element
+        const forceRange = document.getElementById('forceRange');
+        const forceValue = document.getElementById('forceValue');
+        let forceMultiplier = parseInt(forceRange.value, 10);
+
+        // Initialize the force value display
+        forceValue.textContent = `${forceMultiplier}x`;
+
+        // Update the force value display
+        forceRange.addEventListener('input', () => {
+            forceMultiplier = parseInt(forceRange.value, 10);
+            forceValue.textContent = `${forceMultiplier}x`;
+        });
 
         // Function to create a cube group with mesh and wireframe
         function createCubeGroup(position, color) {
@@ -110,11 +130,12 @@
             cubes.forEach((cube, index) => {
                 if (!cube.moved) { // Only move cubes that haven't been moved yet
                     const randomDirection = getRandomDirection();
+                    const cubeForceMultiplier = forceMultiplier; // Capture the force multiplier at the time of movement
                     const animateCube = () => {
                         const newPos = {
-                            x: cube.position.x + randomDirection.x * 0.1,
-                            y: cube.position.y + randomDirection.y * 0.1,
-                            z: cube.position.z + randomDirection.z * 0.1
+                            x: cube.position.x + randomDirection.x * 0.1 * cubeForceMultiplier,
+                            y: cube.position.y + randomDirection.y * 0.1 * cubeForceMultiplier,
+                            z: cube.position.z + randomDirection.z * 0.1 * cubeForceMultiplier
                         };
                         new TWEEN.Tween(cube.position)
                             .to(newPos, 100)
