@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Use A and D keys</title>
+    <title>3D Model with Three.js</title>
     <style>
         body { margin: 0; }
         canvas { display: block; }
@@ -39,6 +39,7 @@
             cubeGroup.add(cube);
             cubeGroup.add(wireframe);
             cubeGroup.position.copy(position);
+            cubeGroup.moved = false; // Add a property to track if the cube has been moved
 
             return cubeGroup;
         }
@@ -52,14 +53,6 @@
 
         // Array to keep track of cube groups
         const cubes = [initialCubeGroup];
-        const directions = [
-            { x: 1, y: 0, z: 0 },
-            { x: -1, y: 0, z: 0 },
-            { x: 0, y: 1, z: 0 },
-            { x: 0, y: -1, z: 0 },
-            { x: 0, y: 0, z: 1 },
-            { x: 0, y: 0, z: -1 }
-        ];
 
         // Function to create a new cube group with random color at an available position
         function createCube() {
@@ -69,13 +62,13 @@
 
             for (let i = 0; i < cubes.length && !positionFound; i++) {
                 const basePosition = cubes[i].position;
-                for (const direction of directions) {
+                for (let j = 0; j < 100; j++) { // Try 100 random positions
                     newPosition.set(
-                        basePosition.x + direction.x * 2,
-                        basePosition.y + direction.y * 2,
-                        basePosition.z + direction.z * 2
+                        basePosition.x + (Math.random() - 0.5) * 4,
+                        basePosition.y + (Math.random() - 0.5) * 4,
+                        basePosition.z + (Math.random() - 0.5) * 4
                     );
-                    const overlap = cubes.some(c => c.position.equals(newPosition));
+                    const overlap = cubes.some(c => c.position.distanceTo(newPosition) < 2);
                     if (!overlap) {
                         positionFound = true;
                         break;
@@ -100,24 +93,38 @@
             }
         });
 
+        // Function to generate a random direction vector
+        function getRandomDirection() {
+            const vector = new THREE.Vector3(
+                Math.random() - 0.5,
+                Math.random() - 0.5,
+                Math.random() - 0.5
+            );
+            vector.normalize(); // Normalize to get a unit vector
+            return vector;
+        }
+
         // Function to trigger a wave effect with continuous motion in random directions
         function triggerWave() {
             console.log('Wave triggered');
             cubes.forEach((cube, index) => {
-                const randomDirection = directions[Math.floor(Math.random() * directions.length)];
-                const animateCube = () => {
-                    const newPos = {
-                        x: cube.position.x + randomDirection.x * 0.1,
-                        y: cube.position.y + randomDirection.y * 0.1,
-                        z: cube.position.z + randomDirection.z * 0.1
+                if (!cube.moved) { // Only move cubes that haven't been moved yet
+                    const randomDirection = getRandomDirection();
+                    const animateCube = () => {
+                        const newPos = {
+                            x: cube.position.x + randomDirection.x * 0.1,
+                            y: cube.position.y + randomDirection.y * 0.1,
+                            z: cube.position.z + randomDirection.z * 0.1
+                        };
+                        new TWEEN.Tween(cube.position)
+                            .to(newPos, 100)
+                            .easing(TWEEN.Easing.Linear.None)
+                            .onComplete(animateCube)
+                            .start();
                     };
-                    new TWEEN.Tween(cube.position)
-                        .to(newPos, 100)
-                        .easing(TWEEN.Easing.Linear.None)
-                        .onComplete(animateCube)
-                        .start();
-                };
-                setTimeout(animateCube, index * 100);
+                    setTimeout(animateCube, index * 100);
+                    cube.moved = true; // Mark the cube as moved
+                }
             });
         }
 
