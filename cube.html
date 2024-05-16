@@ -13,8 +13,8 @@
 <body>
     <div id="controls">
         <label for="forceRange">Force:</label>
-        <input type="range" id="forceRange" name="forceRange" min="1" max="20" value="5">
-        <span id="forceValue">5x</span>
+        <input type="range" id="forceRange" name="forceRange" min="1" max="30" value="10">
+        <span id="forceValue">10x</span>
     </div>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
@@ -134,9 +134,9 @@
                     const cubeForceMultiplier = forceMultiplier; // Capture the force multiplier at the time of movement
                     const animateCube = () => {
                         const newPos = {
-                            x: cube.position.x + randomDirection.x * 0.1 * cubeForceMultiplier,
-                            y: cube.position.y + randomDirection.y * 0.1 * cubeForceMultiplier,
-                            z: cube.position.z + randomDirection.z * 0.1 * cubeForceMultiplier
+                            x: cube.position.x + randomDirection.x * 0.1 * (cubeForceMultiplier / 20 * 10),
+                            y: cube.position.y + randomDirection.y * 0.1 * (cubeForceMultiplier / 20 * 10),
+                            z: cube.position.z + randomDirection.z * 0.1 * (cubeForceMultiplier / 20 * 10)
                         };
                         new TWEEN.Tween(cube.position)
                             .to(newPos, 100)
