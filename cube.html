@@ -8,13 +8,19 @@
         body { margin: 0; }
         canvas { display: block; }
         #controls { position: absolute; top: 10px; left: 10px; z-index: 100; background: rgba(255, 255, 255, 0.8); padding: 10px; border-radius: 5px; }
+        #instructions { position: absolute; top: 10px; right: 10px; z-index: 100; background: rgba(255, 255, 255, 0.8); padding: 10px; border-radius: 5px; }
     </style>
 </head>
 <body>
     <div id="controls">
         <label for="forceRange">Force:</label>
-        <input type="range" id="forceRange" name="forceRange" min="1" max="30" value="10">
+        <input type="range" id="forceRange" name="forceRange" min="1" max="30">
         <span id="forceValue">10x</span>
+    </div>
+    <div id="instructions">
+        <h3>Controls</h3>
+        <p>A: Add a cube</p>
+        <p>D: Trigger motion</p>
     </div>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
@@ -35,15 +41,17 @@
         // Get the force range input and display element
         const forceRange = document.getElementById('forceRange');
         const forceValue = document.getElementById('forceValue');
-        let forceMultiplier = parseInt(forceRange.value, 10);
 
-        // Initialize the force value display
+        // Load the saved force multiplier from localStorage or use a default value
+        let forceMultiplier = parseInt(localStorage.getItem('forceMultiplier')) || 10;
+        forceRange.value = forceMultiplier;
         forceValue.textContent = `${forceMultiplier}x`;
 
-        // Update the force value display
+        // Update the force value display and save to localStorage
         forceRange.addEventListener('input', () => {
             forceMultiplier = parseInt(forceRange.value, 10);
             forceValue.textContent = `${forceMultiplier}x`;
+            localStorage.setItem('forceMultiplier', forceMultiplier);
         });
 
         // Function to create a cube group with mesh and wireframe
@@ -60,6 +68,8 @@
             cubeGroup.add(wireframe);
             cubeGroup.position.copy(position);
             cubeGroup.moved = false; // Add a property to track if the cube has been moved
+            cubeGroup.velocity = new THREE.Vector3(0, 0, 0); // Initialize velocity vector
+            cubeGroup.mass = 1; // Add a mass property for collision response
 
             return cubeGroup;
         }
@@ -124,6 +134,56 @@
             return vector;
         }
 
+        // Function to check for collisions and update velocities
+        function checkAndResolveCollisions() {
+            const grid = {};
+            const gridSize = 2; // Size of each grid cell
+
+            // Helper function to get grid cell key for a position
+            function getGridKey(position) {
+                const x = Math.floor(position.x / gridSize);
+                const y = Math.floor(position.y / gridSize);
+                const z = Math.floor(position.z / gridSize);
+                return `${x},${y},${z}`;
+            }
+
+            // Place cubes into grid cells
+            cubes.forEach(cube => {
+                const key = getGridKey(cube.position);
+                if (!grid[key]) grid[key] = [];
+                grid[key].push(cube);
+            });
+
+            // Check for collisions within each grid cell and its neighbors
+            Object.keys(grid).forEach(key => {
+                const cell = grid[key];
+                for (let i = 0; i < cell.length; i++) {
+                    for (let j = i + 1; j < cell.length; j++) {
+                        const cubeA = cell[i];
+                        const cubeB = cell[j];
+                        const distance = cubeA.position.distanceTo(cubeB.position);
+                        if (distance < 1.1) { // Collision detected
+                            // Calculate new velocities
+                            const normal = new THREE.Vector3().subVectors(cubeA.position, cubeB.position).normalize();
+                            const tangent = new THREE.Vector3().crossVectors(normal, new THREE.Vector3(1, 0, 0)).normalize();
+                            const vA = cubeA.velocity.clone();
+                            const vB = cubeB.velocity.clone();
+
+                            // Normal and tangent components of velocities
+                            const vANormal = normal.clone().multiplyScalar(vA.dot(normal));
+                            const vATangent = tangent.clone().multiplyScalar(vA.dot(tangent));
+                            const vBNormal = normal.clone().multiplyScalar(vB.dot(normal));
+                            const vBTangent = tangent.clone().multiplyScalar(vB.dot(tangent));
+
+                            // Exchange normal components
+                            cubeA.velocity = vBNormal.add(vATangent);
+                            cubeB.velocity = vANormal.add(vBTangent);
+                        }
+                    }
+                }
+            });
+        }
+
         // Function to trigger a wave effect with continuous motion in random directions
         function triggerWave() {
             console.log('Wave triggered');
@@ -132,19 +192,15 @@
                 if (!cube.moved) { // Only move cubes that haven't been moved yet
                     const randomDirection = getRandomDirection();
                     const cubeForceMultiplier = forceMultiplier * 2; // Capture the force multiplier at the time of movement
-                    const animateCube = () => {
-                        const newPos = {
-                            x: cube.position.x + randomDirection.x * 0.1 * cubeForceMultiplier,
-                            y: cube.position.y + randomDirection.y * 0.1 * cubeForceMultiplier,
-                            z: cube.position.z + randomDirection.z * 0.1 * cubeForceMultiplier
-                        };
-                        new TWEEN.Tween(cube.position)
-                            .to(newPos, 100)
-                            .easing(TWEEN.Easing.Linear.None)
-                            .onComplete(animateCube)
-                            .start();
+                    cube.velocity = randomDirection.multiplyScalar(0.1 * cubeForceMultiplier); // Set initial velocity
+
+                    const moveCube = () => {
+                        const newPos = cube.position.clone().add(cube.velocity);
+                        if (!checkAndResolveCollisions()) {
+                            cube.position.copy(newPos);
+                        }
                     };
-                    setTimeout(animateCube, index * delay);
+                    setTimeout(moveCube, index * delay);
                     cube.moved = true; // Mark the cube as moved
                 }
             });
@@ -159,6 +215,12 @@
 
             // Update tweens
             TWEEN.update();
+
+            // Update cube positions
+            checkAndResolveCollisions();
+            cubes.forEach(cube => {
+                cube.position.add(cube.velocity);
+            });
 
             renderer.render(scene, camera);
         }
