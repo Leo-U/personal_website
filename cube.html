@@ -21,8 +21,7 @@
         <h3>Controls</h3>
         <p>A: Add a cube</p>
         <p>D: Trigger motion</p>
-        <br>
-        <p>Click & drag: Rotate</p>
+        <p>Click and drag mouse: Change camera angle</p>
         <p>Mouse wheel: Zoom</p>
     </div>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
@@ -49,6 +48,16 @@
         let forceMultiplier = parseInt(localStorage.getItem('forceMultiplier')) || 10;
         forceRange.value = forceMultiplier;
         forceValue.textContent = `${forceMultiplier}x`;
+
+        // Map slider value to internal force multiplier
+        function mapForceMultiplier(value) {
+            const minSliderValue = 1;
+            const maxSliderValue = 30;
+            const minForceMultiplier = 0.1;
+            const maxForceMultiplier = 30;
+            const scale = (maxForceMultiplier - minForceMultiplier) / (maxSliderValue - minSliderValue);
+            return minForceMultiplier + (value - minSliderValue) * scale;
+        }
 
         // Update the force value display and save to localStorage
         forceRange.addEventListener('input', () => {
@@ -190,11 +199,11 @@
         // Function to trigger a wave effect with continuous motion in random directions
         function triggerWave() {
             console.log('Wave triggered');
-            const delay = 100 / (forceMultiplier * 2); // Decrease delay by force multiplier to speed up the ripple
+            const delay = 100 / mapForceMultiplier(forceMultiplier * 2); // Decrease delay by force multiplier to speed up the ripple
             cubes.forEach((cube, index) => {
                 if (!cube.moved) { // Only move cubes that haven't been moved yet
                     const randomDirection = getRandomDirection();
-                    const cubeForceMultiplier = forceMultiplier * 2; // Capture the force multiplier at the time of movement
+                    const cubeForceMultiplier = mapForceMultiplier(forceMultiplier) * 2; // Capture the force multiplier at the time of movement
                     cube.velocity = randomDirection.multiplyScalar(0.1 * cubeForceMultiplier); // Set initial velocity
 
                     const moveCube = () => {
