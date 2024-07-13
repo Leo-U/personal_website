@@ -65,3 +65,14 @@ a {
 a:hover {
   color: #005fa3;
 }
+
+body.dark-mode {
+  background-color: #121212;
+}
+
+body.dark-mode main {
+  background-color: #1e1e1e;
+  color: #adabab;
+}
+
+/* Add more dark mode styles as needed */
