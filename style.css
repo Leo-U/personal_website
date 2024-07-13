@@ -1,3 +1,6 @@
+/* Import Inter font from Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap');
+
 /* General body styles */
 body {
   font-family: Arial, sans-serif;
@@ -38,6 +41,7 @@ main {
   margin: 0 auto;
   background-color: #fff;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  font-family: 'Inter', Arial, sans-serif;
 }
 
 /* Section styling */
@@ -75,4 +79,36 @@ body.dark-mode main {
   color: #adabab;
 }
 
-/* Add more dark mode styles as needed */
+/* Button styling */
+button {
+  padding: 10px 20px;
+  font-size: 16px;
+  color: #fff;
+  background-color: #0077cc;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  transition: background-color 0.3s, transform 0.3s;
+}
+
+button:hover {
+  background-color: #005fa3;
+}
+
+button:active {
+  transform: scale(0.98);
+}
+
+/* Dark mode button styling */
+body.dark-mode button {
+  background-color: #1e88e5;
+}
+
+body.dark-mode button:hover {
+  background-color: #1565c0;
+}
+
+body.dark-mode button:active {
+  transform: scale(0.98);
+}
