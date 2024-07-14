@@ -9,6 +9,7 @@ body {
   padding: 0;
   background-color: #f4f4f4;
   color: #333;
+  transition: background-color 0.5s, color 0.5s; /* Added transition */
 }
 
 /* Header styles */
@@ -42,6 +43,7 @@ main {
   background-color: #fff;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
   font-family: 'Inter', Arial, sans-serif;
+  transition: background-color 1s, color 1s; /* Added transition */
 }
 
 /* Section styling */
@@ -70,11 +72,12 @@ a:hover {
   color: #005fa3;
 }
 
-body.dark-mode {
+/* Dark mode styles */
+.dark-mode {
   background-color: #121212;
 }
 
-body.dark-mode main {
+.dark-mode main {
   background-color: #1e1e1e;
   color: #adabab;
 }
@@ -89,7 +92,7 @@ button {
   border-radius: 5px;
   cursor: pointer;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  transition: background-color 0.3s, transform 0.3s;
+  transition: background-color 0.3s, transform 2s; /* Added transition */
 }
 
 button:hover {
@@ -101,14 +104,14 @@ button:active {
 }
 
 /* Dark mode button styling */
-body.dark-mode button {
+.dark-mode button {
   background-color: #1e88e5;
 }
 
-body.dark-mode button:hover {
+.dark-mode button:hover {
   background-color: #1565c0;
 }
 
-body.dark-mode button:active {
+.dark-mode button:active {
   transform: scale(0.98);
 }
