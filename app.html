@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Textbook Insights - Joel Howard</title>
+    <title>Learning Insights - Joel Howard</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <header>
-        <h1>Textbook Insights</h1>
+        <h1>Learning Insights</h1>
         <nav>
             <ul>
                 <li><a href="index.html">Home</a></li>
@@ -23,12 +23,12 @@
     
     <main>
         <section>
-            <h2>About 'Textbook Insights'</h2>
-            <p>'<b>Textbook Insights</b>' is an add-on for Google Sheets. This tool is intended to help students and professionals learn any reading-heavy topic.</p>
+            <h2>About 'Learning Insights'</h2>
+            <p>'<b>Learning Insights</b>' is an add-on for Google Sheets. This tool is intended to help students and professionals learn any reading-heavy topic.</p>
         </section>
         <section>
           <h2>Purpose</h2>
-          <p><b>The intended purpose of this app is to provide a color-coded visualization of strengths and weaknesses in whatever is being learned. Green means you know it, red means you don't, and other shades mean somewhere in between.</b></p>
+          <p><b>The purpose of this app is to provide a color-coded visualization of strengths and weaknesses in whatever is being learned. Green means you know it, red means you don't, and other shades mean somewhere in between.</b> The visualization is plotted over time so that the student can track their learning progress and choose what to learn accordingly.</p>
 
           <p>This app automates <a href="https://www.youtube.com/watch?v=iIyDJK_SAjs">this study technique</a> by creatively combining it with <a href="https://www.youtube.com/watch?v=Z-zNHHpXoMM">this scheduling technique</a>.</p>
 
@@ -36,13 +36,13 @@
           
           <p>To automate the process described in the study technique video, this tool adds checkboxes which (1) <b>hide answers</b>, and which (2) set the <b>background color</b> of cells.</p>
           
-          <p>This app is useful for learning any topic that requires large amounts of reading from which <b>question-answer sets</b> may be obtained. It's useful not just for students in school, but also for anyone who needs to learn a great of reading material such as programming documentation.</p>
+          <p>This app is useful for learning any topic that requires large amounts of reading from which <b>question-answer sets</b> may be obtained. It's useful not just for students, but also for anyone who needs to learn a great of reading material such as programming documentation.</p>
         </section>
         <section>
             <h2>How to Use</h2>
             <h3>Step 1: Watch the Videos That Inspired This App's Creation</h3>
             <p>Watch enough of the aforementioned videos to understand the key ideas. You don't have to watch them in their entirety if you don't want to, since for most of us, videos aren't usually the ideal way to learn unless the content is optimal for it. So, click through the videos if you have to, but make sure you understand the key ideas. <a href="https://www.youtube.com/watch?v=Z-zNHHpXoMM">This</a> is the <b>scheduling technique video</b>, and <a href="https://www.youtube.com/watch?v=iIyDJK_SAjs">this</a> is the <b>study technique video</b>.</p>
-            <h3>Step 2: Understand How I've Modified the Scheduling Technique</h3>
+            <h3>Step 2: Understand How The App Modifies the Scheduling Technique</h3>
             <p>Now that you understand the key ideas behind both videos, understand that this app combines both video ideas — the percentage of questions that were marked green in a given Q-A set (as per the study technique) are what is used to automatically set the cell color (as per the scheduling technique). The below image shows what color the program uses to chart the day's progress based on the percentage of questions that were marked green:</p>
             <img src="./images/charting_colors.png" alt="legend showing the colors, red thru green, which the program uses to mark your progress">
             <p>Additionally, the <b>date</b> is set automatically.</p>
@@ -67,17 +67,17 @@
             <h3>Step 5: Prepare Your Question-Answer Sets</h3>
             <p>For a given subject you're learning, create a <b>question-answer set</b> for every subtopic within that subject. These subtopics may correspond to different chapters in a textbook. Each Q-A set should be obtained from a given textbook chapter or internet article. Each <b>Q-A set</b> must be contained in a Google Sheets file. In each Google Sheets file, the questions must be in column A, and the answers must be in column B, as you can see in the image below.</p>
             <img src="./images/q_a_set_example.png" alt="a Q-A set example">
-            <p>You can see that there are headers in Column A. Each header should correspond to a header in the chapter or article you're studying. The idea is, as you're reading the material, create your questions and answers, organizing them under the <b>same headers</b> that are in the text. The program knows to ignore these headers during the formatting process that is detailed in step 6. While creating the answers from the text, try using <a href="https://www.youtube.com/watch?v=UY2GO1ML-Bo"> this method</a> to avoid wasting time.</p>
+            <p>You can see that there are headers in Column A. Each header should correspond to a header in the chapter or article you're studying. The idea is, as you're reading the material, create your questions and answers, organizing them under headers. The program knows to ignore these headers during the formatting process that is detailed in step 6. While creating the answers from the text, try using <a href="https://www.youtube.com/watch?v=UY2GO1ML-Bo"> this method</a> to avoid wasting time.</p>
 
             <p>Place all Q-A set files in the '<b>Q-A Sets</b>' folder. Make each filename the name of the topic for that set.</p>
 
             <h4>LLM-Generate the Q-A Sets or Write Them Yourself?</h4>
             <p><b>Personally, I believe that writing the Q-A sets yourself enhances learning, and that is what I strongly recommend.</b></p>
-            <p>However, having an LLM generate the questions does save time. You can instruct the model to create a Q-A set from your study material as a CSV (comma-separated values) file with questions in column A and answers in column B. When importing that file into Google Sheets, you should use a custom separator like †, since there will be actual commas in your questions and answers which Google Sheets will erroneously interpret as separators. But again, in most situations, I wouldn't recommend you use an LLM to generate the Q-A sets.</p>
+            <p>However, having an LLM generate the questions does save time. You can instruct the model to create a Q-A set from your study material as a CSV (comma-separated values) file with questions in column A and answers in column B. When importing that file into Google Sheets, you should use a custom separator like †, since there will be actual commas in your questions and answers that Google Sheets will erroneously interpret as separators. But again, in most situations, I wouldn't recommend you use an LLM to generate the Q-A sets.</p>
         
             <h3>Step 6: Format Your Q-A Sets</h3>
                 
-            <p>First, open your 'main chart' file mentioned in step 4. Then, from the 'Textbook Insights' menu, select 'Format All Sheets'. It should take somewhere around ten seconds to complete. The program will generate new sheet tabs which will be your Q-A sets that you will use in your studies, as you can see in the below screenshot. Your original Q-A files in Google Drive will be left unchanged in the 'Q-A Sets' folder.</p>
+            <p>First, open your 'main chart' file mentioned in step 4. Then, from the 'Learning Insights' menu, select 'Format All Sheets'. It should take somewhere around ten seconds to complete. The program will generate new sheet tabs which will be your Q-A sets that you will use in your studies, as you can see in the below screenshot. Your original Q-A files in Google Drive will be left unchanged in the 'Q-A Sets' folder.</p>
             <img src="./images/sheet_tabs.png" alt="">
             <p>'Format Additional Sheet' is there so that you can add more Q-A sets later — it's needed as an extra menu option because 'Format All Sheets' is a one-time operation.</p>
 
@@ -88,7 +88,7 @@
             <p>Go to your main chart tab, which you can see below:</p>
             <img src="./images/main_chart_shown .png" alt="">
             
-            <p>Use the checkboxes in column B to select whatever Q-A sets you just studied. Then, From the 'Textbook Insights' menu, select 'Chart Progress'. In a few seconds, it should chart your day's progress as per the scheduling technique video mentioned in step 1.</p>
+            <p>Use the checkboxes in column B to select whatever Q-A sets you just studied. Then, From the 'Learning Insights' menu, select 'Chart Progress'. In a few seconds, it should chart your day's progress as per the scheduling technique video mentioned in step 1.</p>
 
             <h3>Step 9: Use Your Charted Progress In Upcoming Days</h3>
             <p>In your upcoming days, refer to the chart generated by 'Chart Progress' to help you decide what to study next, using the dates and colors to guide you in your decision.</p>
@@ -97,6 +97,7 @@
     <footer>
       <p>Contact me at <a href="mailto:joelhoward2@gmail.com">joelhoward2@gmail.com</a></p>
       <p><a href="https://github.com/Leo-U">My Github profile</a></p>
+      <p><a href="https://github.com/Leo-U/learning_insights">Learning Insights Github Repository</a></p>
       <p>Google Sheets™ web-based spreadsheet program and Google Workspace™ productivity and collaboration tools are trademarks of Google LLC.</p>
     </footer>
     <script src="./scripts.js"></script>
