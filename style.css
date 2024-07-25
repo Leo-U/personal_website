@@ -82,6 +82,22 @@ a:hover {
   color: #adabab;
 }
 
+.dark-mode a {
+  color: rgb(82, 183, 255);
+}
+
+.dark-mode a:visited {
+  color: rgb(82, 183, 255);
+}
+
+.dark-mode a:hover {
+  color: rgb(82, 183, 255);
+}
+
+.dark-mode a:active {
+  color: rgb(82, 183, 255);
+}
+
 /* Button styling */
 button {
   padding: 10px 20px;
