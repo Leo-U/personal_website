@@ -9,7 +9,6 @@ body {
   padding: 0;
   background-color: #f4f4f4;
   color: #333;
-  transition: background-color 0.5s, color 0.5s; /* Added transition */
 }
 
 /* Header styles */
@@ -43,7 +42,6 @@ main {
   background-color: #fff;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
   font-family: 'Inter', Arial, sans-serif;
-  transition: background-color 1s, color 1s; /* Added transition */
 }
 
 /* Section styling */
@@ -108,7 +106,6 @@ button {
   border-radius: 5px;
   cursor: pointer;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  transition: background-color 0.3s, transform 2s; /* Added transition */
 }
 
 button:hover {
