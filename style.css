@@ -128,3 +128,12 @@ button:active {
 .dark-mode button:active {
   transform: scale(0.98);
 }
+
+/* Consistent footer link colors */
+footer a, footer a:visited, footer a:hover, footer a:active {
+  color: rgb(82, 183, 255); /* Brighter blue */
+}
+
+header a, header a:visited, header a:hover, header a:active {
+  color: rgb(82, 183, 255); /* Brighter blue */
+}
