@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cube</title>
+    <style>
+        body { margin: 0; }
+        canvas { display: block; }
+        #controls { position: absolute; top: 10px; left: 10px; z-index: 100; background: rgba(255, 255, 255, 0.8); padding: 10px; border-radius: 5px; width: 450px; }
+        #instructions { position: absolute; top: 10px; right: 10px; z-index: 100; background: rgba(255, 255, 255, 0.8); padding: 10px; border-radius: 5px; }
+        input[type="range"] { width: 400px; } /* Extend the slider length */
+    </style>
+</head>
+<body>
+    <div id="controls">
+        <label for="forceRange">Force:</label>
+        <input type="range" id="forceRange" name="forceRange" min="1" max="30">
+        <span id="forceValue">10</span>
+    </div>
+    <div id="instructions">
+        <h3>Controls</h3>
+        <p>A: Add a cube</p>
+        <p>D: Trigger motion</p>
+        <br>
+        <p>Click & drag: Change angle</p>
+        <p>Mouse wheel: Zoom</p>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tween.js/18.6.4/tween.umd.js"></script>
+    <script>
+        // Initialize the scene
+        const scene = new THREE.Scene();
+
+        // Set up the camera
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 2000);
+        camera.position.set(-10, -10, 10); // Position the camera below and to the left
+        camera.lookAt(new THREE.Vector3(0, 0, 0)); // Make the camera look at the center (cube)
+
+        // Set up the renderer
+        const renderer = new THREE.WebGLRenderer();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(renderer.domElement);
+
+        // Add a galaxy background
+        const loader = new THREE.TextureLoader();
+        console.log('Starting texture load...');
+        loader.load(
+            'https://upload.wikimedia.org/wikipedia/commons/e/e5/Triangulum_galaxy.png',
+            (texture) => {
+                console.log('Texture loaded:', texture);
+                const aspect = texture.image.width / texture.image.height;
+                const geometry = new THREE.PlaneGeometry(200 * aspect, 200);
+                const material = new THREE.MeshBasicMaterial({
+                    map: texture,
+                    side: THREE.DoubleSide,
+                });
+                const plane = new THREE.Mesh(geometry, material);
+                plane.position.z = -100;
+                scene.add(plane);
+                console.log('Plane added to scene');
+            },
+            undefined,
+            (error) => {
+                console.error('Error loading texture:', error);
+            }
+        );
+
+        // Add lighting to the scene
+        const ambientLight = new THREE.AmbientLight(0xffffff, 1);
+        scene.add(ambientLight);
+
+        // Get the force range input and display element
+        const forceRange = document.getElementById('forceRange');
+        const forceValue = document.getElementById('forceValue');
+
+        // Load the saved force multiplier from localStorage or use a default value
+        let forceMultiplier = parseInt(localStorage.getItem('forceMultiplier')) || 10;
+        forceRange.value = forceMultiplier;
+        forceValue.textContent = forceMultiplier;
+
+        // Map slider value to internal force multiplier
+        function mapForceMultiplier(value) {
+            const minSliderValue = 1;
+            const maxSliderValue = 30;
+            const minForceMultiplier = 0.1;
+            const maxForceMultiplier = 10;
+            const scale = (maxForceMultiplier - minForceMultiplier) / (maxSliderValue - minSliderValue);
+            return minForceMultiplier + (value - minSliderValue) * scale;
+        }
+
+        // Update the force value display and save to localStorage
+        forceRange.addEventListener('input', () => {
+            forceMultiplier = parseInt(forceRange.value, 10);
+            forceValue.textContent = forceMultiplier;
+            localStorage.setItem('forceMultiplier', forceMultiplier);
+        });
+
+        // Function to create a cube group with mesh and wireframe
+        function createCubeGroup(position, color) {
+            const geometry = new THREE.BoxGeometry();
+            const material = new THREE.MeshBasicMaterial({ color });
+            const cube = new THREE.Mesh(geometry, material);
+            const edges = new THREE.EdgesGeometry(geometry);
+            const lineMaterial = new THREE.LineBasicMaterial({ color: 0x000000 });
+            const wireframe = new THREE.LineSegments(edges, lineMaterial);
+
+            const cubeGroup = new THREE.Object3D();
+            cubeGroup.add(cube);
+            cubeGroup.add(wireframe);
+            cubeGroup.position.copy(position);
+            cubeGroup.moved = false; // Add a property to track if the cube has been moved
+            cubeGroup.velocity = new THREE.Vector3(0, 0, 0); // Initialize velocity vector
+            cubeGroup.mass = 1; // Add a mass property for collision response
+
+            return cubeGroup;
+        }
+
+        // Create initial cube
+        const initialCubeGroup = createCubeGroup(new THREE.Vector3(), 0x00ff00);
+        scene.add(initialCubeGroup);
+
+        // Add OrbitControls
+        const controls = new THREE.OrbitControls(camera, renderer.domElement);
+
+        // Array to keep track of cube groups
+        const cubes = [initialCubeGroup];
+
+        // Function to create a new cube group with random color at an available position
+        function createCube() {
+            const color = Math.random() * 0xffffff;
+            let positionFound = false;
+            let newPosition = new THREE.Vector3();
+
+            for (let i = 0; i < cubes.length && !positionFound; i++) {
+                const basePosition = cubes[i].position;
+                for (let j = 0; j < 100; j++) { // Try 100 random positions
+                    newPosition.set(
+                        basePosition.x + (Math.random() - 0.5) * 4,
+                        basePosition.y + (Math.random() - 0.5) * 4,
+                        basePosition.z + (Math.random() - 0.5) * 4
+                    );
+                    const overlap = cubes.some(c => c.position.distanceTo(newPosition) < 2);
+                    if (!overlap) {
+                        positionFound = true;
+                        break;
+                    }
+                }
+            }
+
+            if (positionFound) {
+                const newCubeGroup = createCubeGroup(newPosition, color);
+                scene.add(newCubeGroup);
+                cubes.push(newCubeGroup);
+            }
+        }
+
+        // Event listener for keydown
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'a') {
+                createCube();  // Add one cube
+            } else if (event.key === 'd') {
+                console.log('D key pressed');
+                triggerWave();
+            }
+        });
+
+        // Function to generate a random direction vector
+        function getRandomDirection() {
+            const vector = new THREE.Vector3(
+                Math.random() - 0.5,
+                Math.random() - 0.5,
+                Math.random() - 0.5
+            );
+            vector.normalize(); // Normalize to get a unit vector
+            return vector;
+        }
+
+        // Function to check for collisions and update velocities
+        function checkAndResolveCollisions() {
+            const grid = {};
+            const gridSize = 2; // Size of each grid cell
+
+            // Helper function to get grid cell key for a position
+            function getGridKey(position) {
+                const x = Math.floor(position.x / gridSize);
+                const y = Math.floor(position.y / gridSize);
+                const z = Math.floor(position.z / gridSize);
+                return `${x},${y},${z}`;
+            }
+
+            // Place cubes into grid cells
+            cubes.forEach(cube => {
+                const key = getGridKey(cube.position);
+                if (!grid[key]) grid[key] = [];
+                grid[key].push(cube);
+            });
+
+            // Check for collisions within each grid cell and its neighbors
+            Object.keys(grid).forEach(key => {
+                const cell = grid[key];
+                for (let i = 0; i < cell.length; i++) {
+                    for (let j = i + 1; j < cell.length; j++) {
+                        const cubeA = cell[i];
+                        const cubeB = cell[j];
+                        const distance = cubeA.position.distanceTo(cubeB.position);
+                        if (distance < 1.1) { // Collision detected
+                            // Calculate new velocities
+                            const normal = new THREE.Vector3().subVectors(cubeA.position, cubeB.position).normalize();
+                            const tangent = new THREE.Vector3().crossVectors(normal, new THREE.Vector3(1, 0, 0)).normalize();
+                            const vA = cubeA.velocity.clone();
+                            const vB = cubeB.velocity.clone();
+
+                            // Normal and tangent components of velocities
+                            const vANormal = normal.clone().multiplyScalar(vA.dot(normal));
+                            const vATangent = tangent.clone().multiplyScalar(vA.dot(tangent));
+                            const vBNormal = normal.clone().multiplyScalar(vB.dot(normal));
+                            const vBTangent = tangent.clone().multiplyScalar(vB.dot(tangent));
+
+                            // Exchange normal components
+                            cubeA.velocity = vBNormal.add(vATangent);
+                            cubeB.velocity = vANormal.add(vBTangent);
+                        }
+                    }
+                }
+            });
+        }
+
+        // Function to trigger a wave effect with continuous motion in random directions
+        function triggerWave() {
+            console.log('Wave triggered');
+            const delay = 100 / mapForceMultiplier(forceMultiplier); // Decrease delay by force multiplier to speed up the ripple
+            cubes.forEach((cube, index) => {
+                if (!cube.moved) { // Only move cubes that haven't been moved yet
+                    const randomDirection = getRandomDirection();
+                    const cubeForceMultiplier = mapForceMultiplier(forceMultiplier); // Capture the force multiplier at the time of movement
+                    cube.velocity = randomDirection.multiplyScalar(0.1 * cubeForceMultiplier); // Set initial velocity
+
+                    const moveCube = () => {
+                        const newPos = cube.position.clone().add(cube.velocity);
+                        if (!checkAndResolveCollisions()) {
+                            cube.position.copy(newPos);
+                        }
+                    };
+                    setTimeout(moveCube, index * delay);
+                    cube.moved = true; // Mark the cube as moved
+                }
+            });
+        }
+
+        // Animation loop
+        function animate() {
+            requestAnimationFrame(animate);
+
+            // Update controls
+            controls.update();
+
+            // Update tweens
+            TWEEN.update();
+
+            // Update cube positions
+            checkAndResolveCollisions();
+            cubes.forEach(cube => {
+                cube.position.add(cube.velocity);
+            });
+
+            renderer.render(scene, camera);
+        }
+
+        animate();
+
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+    </script>
+</body>
+</html>
