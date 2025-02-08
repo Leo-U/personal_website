@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cube</title>
     <style>
-        body { margin: 0; }
+        body { margin: 0; background-color: black; }
         canvas { display: block; }
         #controls { position: absolute; top: 10px; left: 10px; z-index: 100; background: rgba(255, 255, 255, 0.8); padding: 10px; border-radius: 5px; width: 450px; }
         #instructions { position: absolute; top: 10px; right: 10px; z-index: 100; background: rgba(255, 255, 255, 0.8); padding: 10px; border-radius: 5px; }
@@ -43,30 +43,6 @@
         renderer.setSize(window.innerWidth, window.innerHeight);
         document.body.appendChild(renderer.domElement);
 
-        // Add a galaxy background
-        const loader = new THREE.TextureLoader();
-        console.log('Starting texture load...');
-        loader.load(
-            'https://upload.wikimedia.org/wikipedia/commons/e/e5/Triangulum_galaxy.png',
-            (texture) => {
-                console.log('Texture loaded:', texture);
-                const aspect = texture.image.width / texture.image.height;
-                const geometry = new THREE.PlaneGeometry(200 * aspect, 200);
-                const material = new THREE.MeshBasicMaterial({
-                    map: texture,
-                    side: THREE.DoubleSide,
-                });
-                const plane = new THREE.Mesh(geometry, material);
-                plane.position.z = -100;
-                scene.add(plane);
-                console.log('Plane added to scene');
-            },
-            undefined,
-            (error) => {
-                console.error('Error loading texture:', error);
-            }
-        );
-
         // Add lighting to the scene
         const ambientLight = new THREE.AmbientLight(0xffffff, 1);
         scene.add(ambientLight);
@@ -75,8 +51,8 @@
         const forceRange = document.getElementById('forceRange');
         const forceValue = document.getElementById('forceValue');
 
-        // Load the saved force multiplier from localStorage or use a default value
-        let forceMultiplier = parseInt(localStorage.getItem('forceMultiplier')) || 10;
+        // Load the saved force multiplier from localStorage or use a default value of 2
+        let forceMultiplier = parseInt(localStorage.getItem('forceMultiplier')) || 2;
         forceRange.value = forceMultiplier;
         forceValue.textContent = forceMultiplier;
 
@@ -166,82 +142,21 @@
             }
         });
 
-        // Function to generate a random direction vector
-        function getRandomDirection() {
-            const vector = new THREE.Vector3(
-                Math.random() - 0.5,
-                Math.random() - 0.5,
-                Math.random() - 0.5
-            );
-            vector.normalize(); // Normalize to get a unit vector
-            return vector;
-        }
-
-        // Function to check for collisions and update velocities
-        function checkAndResolveCollisions() {
-            const grid = {};
-            const gridSize = 2; // Size of each grid cell
-
-            // Helper function to get grid cell key for a position
-            function getGridKey(position) {
-                const x = Math.floor(position.x / gridSize);
-                const y = Math.floor(position.y / gridSize);
-                const z = Math.floor(position.z / gridSize);
-                return `${x},${y},${z}`;
-            }
-
-            // Place cubes into grid cells
-            cubes.forEach(cube => {
-                const key = getGridKey(cube.position);
-                if (!grid[key]) grid[key] = [];
-                grid[key].push(cube);
-            });
-
-            // Check for collisions within each grid cell and its neighbors
-            Object.keys(grid).forEach(key => {
-                const cell = grid[key];
-                for (let i = 0; i < cell.length; i++) {
-                    for (let j = i + 1; j < cell.length; j++) {
-                        const cubeA = cell[i];
-                        const cubeB = cell[j];
-                        const distance = cubeA.position.distanceTo(cubeB.position);
-                        if (distance < 1.1) { // Collision detected
-                            // Calculate new velocities
-                            const normal = new THREE.Vector3().subVectors(cubeA.position, cubeB.position).normalize();
-                            const tangent = new THREE.Vector3().crossVectors(normal, new THREE.Vector3(1, 0, 0)).normalize();
-                            const vA = cubeA.velocity.clone();
-                            const vB = cubeB.velocity.clone();
-
-                            // Normal and tangent components of velocities
-                            const vANormal = normal.clone().multiplyScalar(vA.dot(normal));
-                            const vATangent = tangent.clone().multiplyScalar(vA.dot(tangent));
-                            const vBNormal = normal.clone().multiplyScalar(vB.dot(normal));
-                            const vBTangent = tangent.clone().multiplyScalar(vB.dot(tangent));
-
-                            // Exchange normal components
-                            cubeA.velocity = vBNormal.add(vATangent);
-                            cubeB.velocity = vANormal.add(vBTangent);
-                        }
-                    }
-                }
-            });
-        }
-
         // Function to trigger a wave effect with continuous motion in random directions
         function triggerWave() {
             console.log('Wave triggered');
             const delay = 100 / mapForceMultiplier(forceMultiplier); // Decrease delay by force multiplier to speed up the ripple
             cubes.forEach((cube, index) => {
                 if (!cube.moved) { // Only move cubes that haven't been moved yet
-                    const randomDirection = getRandomDirection();
-                    const cubeForceMultiplier = mapForceMultiplier(forceMultiplier); // Capture the force multiplier at the time of movement
-                    cube.velocity = randomDirection.multiplyScalar(0.1 * cubeForceMultiplier); // Set initial velocity
+                    const randomDirection = new THREE.Vector3(
+                        Math.random() - 0.5,
+                        Math.random() - 0.5,
+                        Math.random() - 0.5
+                    ).normalize();
+                    cube.velocity = randomDirection.multiplyScalar(0.1 * mapForceMultiplier(forceMultiplier));
 
                     const moveCube = () => {
-                        const newPos = cube.position.clone().add(cube.velocity);
-                        if (!checkAndResolveCollisions()) {
-                            cube.position.copy(newPos);
-                        }
+                        cube.position.add(cube.velocity);
                     };
                     setTimeout(moveCube, index * delay);
                     cube.moved = true; // Mark the cube as moved
@@ -252,19 +167,11 @@
         // Animation loop
         function animate() {
             requestAnimationFrame(animate);
-
-            // Update controls
             controls.update();
-
-            // Update tweens
             TWEEN.update();
-
-            // Update cube positions
-            checkAndResolveCollisions();
             cubes.forEach(cube => {
                 cube.position.add(cube.velocity);
             });
-
             renderer.render(scene, camera);
         }
 
